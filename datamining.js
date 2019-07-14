@@ -62,7 +62,7 @@ function styleFunction(feature) {
 };
 
 // Load vector sources from the WFS service
-function defineVectorSource(layername){
+function defineVectorSource(layername, featureStatus){
   var vectorSource = new ol.source.Vector({
     renderMode: 'image', // Vector layers are rendered as images. Better performance. Default is 'vector'.
     format: new ol.format.GeoJSON(),
@@ -72,7 +72,7 @@ function defineVectorSource(layername){
               '&typeName=potatoBlight:'+ layername +
               // '&CQL_FILTER=id=1'+ // worked
             //   // The following line works in geojson preview
-              '&CQL_FILTER=status=%27accept%27' +
+              '&CQL_FILTER=status=%27' + featureStatus + '%27' +
              '&outputFormat=application/json&srsname=EPSG:3857'
             // + '&bbox=' + extent.join(',') + ',EPSG:3857'; // CQL filter and bbox are mutually exclusive. comment this to enable cql filter
     },
@@ -206,7 +206,7 @@ previousButton.onclick = function(){
 var source43 = defineVectorSource('a_43disease_extend0');
 // var source43_old = defineVectorSource('a_43disease_old0');
 var source44 = defineVectorSource('a_44disease_extend0');
-var source44_old = defineVectorSource('a_44disease_old0');
+var source44_old = defineVectorSource('a_44disease_old0', 'remove');
 var source45 = defineVectorSource('a_45disease_extend0');
 
 var layer43 = defineVectorLayer('1843disease', source43);
