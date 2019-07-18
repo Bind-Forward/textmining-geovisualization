@@ -62,7 +62,7 @@ function styleFunction(feature) {
 };
 
 // Load vector sources from the WFS service
-function defineVectorSource(layername, featureStatus){
+function defineVectorSource(layername, layerstatus){
   var vectorSource = new ol.source.Vector({
     renderMode: 'image', // Vector layers are rendered as images. Better performance. Default is 'vector'.
     format: new ol.format.GeoJSON(),
@@ -72,7 +72,7 @@ function defineVectorSource(layername, featureStatus){
               '&typeName=potatoBlight:'+ layername +
               // '&CQL_FILTER=id=1'+ // worked
             //   // The following line works in geojson preview
-              '&CQL_FILTER=status=%27' + featureStatus + '%27' +
+              '&CQL_FILTER=status=%27'+ layerstatus +'%27' +
              '&outputFormat=application/json&srsname=EPSG:3857'
             // + '&bbox=' + extent.join(',') + ',EPSG:3857'; // CQL filter and bbox are mutually exclusive. comment this to enable cql filter
     },
@@ -88,6 +88,7 @@ function defineVectorLayer(layerTitle, layerSource){
     source: layerSource,
     style: styleFunction,
   });
+  console.log(vectorLayer.get('title'));
   return vectorLayer;
 };
 
@@ -150,6 +151,8 @@ var currentPointID;
 var currentFeature;
 var currentLayer;
 
+
+
 var overlay = new ol.Overlay({
   element: container,
   autoPan: true,
@@ -203,17 +206,17 @@ previousButton.onclick = function(){
   getData(multiFeatures, featureIndex, fLength);
 };
 
-var source43 = defineVectorSource('a_43disease_extend0');
-// var source43_old = defineVectorSource('a_43disease_old0');
-var source44 = defineVectorSource('a_44disease_extend0');
-var source44_old = defineVectorSource('a_44disease_old0', 'remove');
-var source45 = defineVectorSource('a_45disease_extend0');
+// var source43 = defineVectorSource('a_43disease_extend0');
+// // var source43_old = defineVectorSource('a_43disease_old0');
+// var source44 = defineVectorSource('a_44disease_extend0');
+// var source44_old = defineVectorSource('a_44disease_old0', 'accept');
+// var source45 = defineVectorSource('a_45disease_extend0');
 
-var layer43 = defineVectorLayer('1843disease', source43);
-// var layer43_old = defineVectorLayer('1843disease old', source43_old);
-var layer44 = defineVectorLayer('1844disease', source44);
-var layer44_old = defineVectorLayer('1844disease old', source44_old);
-var layer45 = defineVectorLayer('1845disease', source45);
+// var layer43 = defineVectorLayer('1843disease', source43);
+// // var layer43_old = defineVectorLayer('1843disease old', source43_old);
+// var layer44 = defineVectorLayer('1844disease', source44);
+// var layer44_old = defineVectorLayer('1844disease old', source44_old);
+// var layer45 = defineVectorLayer('1845disease', source45);
 
 var formatWFS = new ol.format.WFS();
 
@@ -276,6 +279,75 @@ var interactionSelect = new ol.interaction.Select({
 //   source: layer45.getSource()
 // });
 
+// Added a collapsible groups of layers
+
+var layerNames = ['a_43disease_extend0', 'a_43disease_old0', 'a_44disease_extend0', 'a_44disease_old0', 'a_45disease_extend0'];
+var layerStatus = ["remove", "archive", "default", "uncertain", "move", "accept"];
+// var layersDict = {};
+
+function createLayersGroups(layerNames, layerStatus){
+  var layersDict = {};
+  var layersGroup = [];
+  for (n of layerNames){
+    layersDict[n] = [];
+    for (s of layerStatus){
+      layersDict[n].push(defineNewVectorLayer(n, s));
+    }
+  };
+  for (var key in layersDict){
+    var g = new ol.layer.Group({
+      title: key,
+      fold: 'open',
+      layers: layersDict[key]
+    });
+    layersGroup.push(g);
+  }
+  return layersGroup;
+};
+
+gList = createLayersGroups(layerNames, layerStatus);
+
+// console.log(testd = createLayersDict(layerNames, layerStatus));
+
+function defineNewVectorLayer(layername, featurestatus){
+  var vectorLayer = new ol.layer.Vector({
+    title: featurestatus,
+    source: new ol.source.Vector({
+      renderMode: 'image', // Vector layers are rendered as images. Better performance. Default is 'vector'.
+      format: new ol.format.GeoJSON(),
+      url: function(extent) {
+        return  'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS' +
+                '&version=1.0.0&request=GetFeature'+
+                '&typeName=potatoBlight:'+ layername +
+                // '&CQL_FILTER=id=1'+ // worked
+              //   // The following line works in geojson preview
+                '&CQL_FILTER=status=%27'+ featurestatus +'%27' +
+               '&outputFormat=application/json&srsname=EPSG:3857'
+              // + '&bbox=' + extent.join(',') + ',EPSG:3857'; // CQL filter and bbox are mutually exclusive. comment this to enable cql filter
+      },
+      strategy: ol.loadingstrategy.bbox,
+    }),
+    style: styleFunction,
+  });
+  // console.log(vectorLayer.get('title'));
+  return vectorLayer;
+};
+
+
+
+// // Added a collapsible groups of layers
+// var accept44 = defineVectorSource('a_44disease_old0', 'accept');
+// var remove44 = defineVectorSource('a_44disease_old0', 'remove');
+// var uncertian44 = defineVectorSource('a_44disease_old0', 'uncertain');
+
+// var a44 = defineVectorLayer('accept', accept44);
+// var r44 = defineVectorLayer('remove', remove44);
+// var u44 = defineVectorLayer('uncertain', uncertian44);
+
+var a44 = defineNewVectorLayer('a_44disease_old0', 'accept');
+var r44 = defineNewVectorLayer('a_44disease_old0', 'remove');
+var u44 = defineNewVectorLayer('a_44disease_old0', 'uncertain');
+
 var mapLayers = [
   new ol.layer.Group({
     title: "Base maps", 
@@ -291,16 +363,32 @@ var mapLayers = [
   }),
   new ol.layer.Group({
     title: "Layers",
-    layers: [
-      // layer45,
-      layer44_old,
-      // layer44,
-      // layer43_old,
-      // layer43,
-    ]
+    fold: 'open',
+    layers: gList    
+    // [
+    //   new ol.layer.Group({
+    //     // title : a44.get('title'),
+    //     title: '1844 disease',
+    //     fold: 'open',
+    //     layers:[
+    //       u44,
+    //       r44,
+    //       a44,
+    //     ]
+    //   })
+    // ]
   })
+  // new ol.layer.Group({
+  //   title: "Layers",
+  //   layers: [
+  //     // layer45,
+  //     layer44_old,
+  //     // layer44,
+  //     // layer43_old,
+  //     // layer43,
+  //   ]
+  // })
 ];
-
 
 var map = new ol.Map({
   target: 'map',
@@ -334,7 +422,8 @@ var map = new ol.Map({
 // map.addControl(sidebar);
 
 var layerSwitcher = new ol.control.LayerSwitcher({
-  tipLabel: 'Légende'
+  tipLabel: 'Légende',
+  groupSelectStyle: 'children'
 });
 map.addControl(layerSwitcher);
 
@@ -385,8 +474,8 @@ var table = $('#attributeTb').DataTable({
     "url": 'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS'+ 
     '&version=1.0.0&request=GetFeature'+
     '&typeName=potatoBlight:'+ 'a_44disease_old0' +
-    // '&CQL_FILTER=status=%27accept%27' +
-    '&CQL_FILTER=id=1' +
+    '&CQL_FILTER=status=%27accept%27' +
+    // '&CQL_FILTER=id=1' +
     '&outputFormat=application/json',
     "dataSrc": "features"
   },
