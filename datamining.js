@@ -1,3 +1,44 @@
+// Load vector layer from the WFS service
+function defineVectorLayer(layername, featurestatus){
+  var vectorLayer = new ol.layer.Vector({
+    title: featurestatus,
+    source: new ol.source.Vector({
+      renderMode: 'image', // Vector layers are rendered as images. Better performance. Default is 'vector'.
+      format: new ol.format.GeoJSON(),
+      url: function(extent) {
+        return  'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS' +
+                '&version=1.0.0&request=GetFeature'+
+                '&typeName=potatoBlight:'+ layername +
+                '&CQL_FILTER=status=%27'+ featurestatus +'%27' +
+               '&outputFormat=application/json&srsname=EPSG:3857'
+              // + '&bbox=' + extent.join(',') + ',EPSG:3857'; // CQL filter and bbox are mutually exclusive. comment this to enable cql filter
+      },
+      strategy: ol.loadingstrategy.bbox,
+    }),
+    style: styleFunction,
+  });
+  return vectorLayer;
+};
+
+function createLayersGroups(layerNames, layerStatus){
+  var layersDict = {};
+  var layersGroup = [];
+  for (n of layerNames){
+    layersDict[n] = [];
+    for (s of layerStatus){
+      layersDict[n].push(defineVectorLayer(n, s));
+    }
+  };
+  for (var key in layersDict){
+    var g = new ol.layer.Group({
+      title: key,
+      fold: 'open',
+      layers: layersDict[key]
+    });
+    layersGroup.push(g);
+  }
+  return layersGroup;
+};
 
 function buttonSwitch(i, length){
   if (i <= 0){
@@ -61,37 +102,6 @@ function styleFunction(feature) {
     return reStyle;
 };
 
-// Load vector sources from the WFS service
-function defineVectorSource(layername, layerstatus){
-  var vectorSource = new ol.source.Vector({
-    renderMode: 'image', // Vector layers are rendered as images. Better performance. Default is 'vector'.
-    format: new ol.format.GeoJSON(),
-    url: function(extent) {
-      return  'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS' +
-              '&version=1.0.0&request=GetFeature'+
-              '&typeName=potatoBlight:'+ layername +
-              // '&CQL_FILTER=id=1'+ // worked
-            //   // The following line works in geojson preview
-              '&CQL_FILTER=status=%27'+ layerstatus +'%27' +
-             '&outputFormat=application/json&srsname=EPSG:3857'
-            // + '&bbox=' + extent.join(',') + ',EPSG:3857'; // CQL filter and bbox are mutually exclusive. comment this to enable cql filter
-    },
-    strategy: ol.loadingstrategy.bbox,
-  });
-  console.log(layername);
-  return vectorSource;
-};
-
-function defineVectorLayer(layerTitle, layerSource){
-  var vectorLayer = new ol.layer.Vector({
-    title: layerTitle,
-    source: layerSource,
-    style: styleFunction,
-  });
-  console.log(vectorLayer.get('title'));
-  return vectorLayer;
-};
-
 function getData(multiFeatures, featureIndex, fLength){
   var f = multiFeatures[featureIndex];
   var pointID = f.get('id');
@@ -135,6 +145,14 @@ function closeNav() {
   document.getElementById("map").style.marginBottom= "0";
 }
 
+function highlightFeature(feat){
+  interactionSelect.getFeatures().push(feat);
+  interactionSelect.dispatchEvent({
+     type: 'select',
+     selected: [feat],
+     deselected: []
+  });
+};
 
 var container = document.getElementById('popup');
 var content = document.getElementById('popup-content');
@@ -150,7 +168,6 @@ var multiFeatures;
 var currentPointID;
 var currentFeature;
 var currentLayer;
-
 
 
 var overlay = new ol.Overlay({
@@ -206,18 +223,6 @@ previousButton.onclick = function(){
   getData(multiFeatures, featureIndex, fLength);
 };
 
-// var source43 = defineVectorSource('a_43disease_extend0');
-// // var source43_old = defineVectorSource('a_43disease_old0');
-// var source44 = defineVectorSource('a_44disease_extend0');
-// var source44_old = defineVectorSource('a_44disease_old0', 'accept');
-// var source45 = defineVectorSource('a_45disease_extend0');
-
-// var layer43 = defineVectorLayer('1843disease', source43);
-// // var layer43_old = defineVectorLayer('1843disease old', source43_old);
-// var layer44 = defineVectorLayer('1844disease', source44);
-// var layer44_old = defineVectorLayer('1844disease old', source44_old);
-// var layer45 = defineVectorLayer('1845disease', source45);
-
 var formatWFS = new ol.format.WFS();
 
 // function defineGML(currentLayer){
@@ -259,7 +264,6 @@ var transactWFS = function (mode, f) {
   });
 };
 
-// var interaction;
 
 // Define pointer move interaction on the layers. The sytle is default.
 var interactionSelectPointerMove = new ol.interaction.Select({
@@ -267,86 +271,11 @@ var interactionSelectPointerMove = new ol.interaction.Select({
 });
 
 var interactionSelect = new ol.interaction.Select({
-  // style: new ol.style.Style({
-  //     stroke: new ol.style.Stroke({
-  //         color: '#B423C4'
-  //     })
-  // }),
-  // condition: ol.events.condition.click
 });
 
-// var interactionSnap = new ol.interaction.Snap({
-//   source: layer45.getSource()
-// });
-
-// Added a collapsible groups of layers
-
-var layerNames = ['a_43disease_extend0', 'a_43disease_old0', 'a_44disease_extend0', 'a_44disease_old0', 'a_45disease_extend0'];
+var layerNames = ['a_43disease_old0', 'a_44disease_old0', 'a_45disease_extend0']; //'a_43disease_extend0', 'a_44disease_extend0'
 var layerStatus = ["remove", "archive", "default", "uncertain", "move", "accept"];
-// var layersDict = {};
-
-function createLayersGroups(layerNames, layerStatus){
-  var layersDict = {};
-  var layersGroup = [];
-  for (n of layerNames){
-    layersDict[n] = [];
-    for (s of layerStatus){
-      layersDict[n].push(defineNewVectorLayer(n, s));
-    }
-  };
-  for (var key in layersDict){
-    var g = new ol.layer.Group({
-      title: key,
-      fold: 'open',
-      layers: layersDict[key]
-    });
-    layersGroup.push(g);
-  }
-  return layersGroup;
-};
-
 gList = createLayersGroups(layerNames, layerStatus);
-
-// console.log(testd = createLayersDict(layerNames, layerStatus));
-
-function defineNewVectorLayer(layername, featurestatus){
-  var vectorLayer = new ol.layer.Vector({
-    title: featurestatus,
-    source: new ol.source.Vector({
-      renderMode: 'image', // Vector layers are rendered as images. Better performance. Default is 'vector'.
-      format: new ol.format.GeoJSON(),
-      url: function(extent) {
-        return  'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS' +
-                '&version=1.0.0&request=GetFeature'+
-                '&typeName=potatoBlight:'+ layername +
-                // '&CQL_FILTER=id=1'+ // worked
-              //   // The following line works in geojson preview
-                '&CQL_FILTER=status=%27'+ featurestatus +'%27' +
-               '&outputFormat=application/json&srsname=EPSG:3857'
-              // + '&bbox=' + extent.join(',') + ',EPSG:3857'; // CQL filter and bbox are mutually exclusive. comment this to enable cql filter
-      },
-      strategy: ol.loadingstrategy.bbox,
-    }),
-    style: styleFunction,
-  });
-  // console.log(vectorLayer.get('title'));
-  return vectorLayer;
-};
-
-
-
-// // Added a collapsible groups of layers
-// var accept44 = defineVectorSource('a_44disease_old0', 'accept');
-// var remove44 = defineVectorSource('a_44disease_old0', 'remove');
-// var uncertian44 = defineVectorSource('a_44disease_old0', 'uncertain');
-
-// var a44 = defineVectorLayer('accept', accept44);
-// var r44 = defineVectorLayer('remove', remove44);
-// var u44 = defineVectorLayer('uncertain', uncertian44);
-
-var a44 = defineNewVectorLayer('a_44disease_old0', 'accept');
-var r44 = defineNewVectorLayer('a_44disease_old0', 'remove');
-var u44 = defineNewVectorLayer('a_44disease_old0', 'uncertain');
 
 var mapLayers = [
   new ol.layer.Group({
@@ -364,30 +293,8 @@ var mapLayers = [
   new ol.layer.Group({
     title: "Layers",
     fold: 'open',
-    layers: gList    
-    // [
-    //   new ol.layer.Group({
-    //     // title : a44.get('title'),
-    //     title: '1844 disease',
-    //     fold: 'open',
-    //     layers:[
-    //       u44,
-    //       r44,
-    //       a44,
-    //     ]
-    //   })
-    // ]
+    layers: gList
   })
-  // new ol.layer.Group({
-  //   title: "Layers",
-  //   layers: [
-  //     // layer45,
-  //     layer44_old,
-  //     // layer44,
-  //     // layer43_old,
-  //     // layer43,
-  //   ]
-  // })
 ];
 
 var map = new ol.Map({
@@ -413,13 +320,6 @@ var map = new ol.Map({
     zoom: 3   
     }),
 });
-
-// Add sidebar
-// var sidebar = new ol.control.Sidebar({ element: 'sidebar', position: 'right'});
-
-// var toc = document.getElementById('layers');
-// ol.control.LayerSwitcher.renderPanel(map, toc);
-// map.addControl(sidebar);
 
 var layerSwitcher = new ol.control.LayerSwitcher({
   tipLabel: 'Légende',
@@ -511,17 +411,8 @@ var pStyle = new ol.style.Style({
       color:"dark grey",
       width: 0.5
     })
-})
+  })
 });
-
-function highlightFeature(feat){
-  interactionSelect.getFeatures().push(feat);
-  interactionSelect.dispatchEvent({
-     type: 'select',
-     selected: [feat],
-     deselected: []
-  });
-};
 
 // Select the row in the attribute table will also highlight the point on the map.
 // It doesn't enable multiple selection.
@@ -555,49 +446,3 @@ $('#attributeTb tbody').on('click', 'tr', function () {
     highlightFeature(selectedFeatures)
   }
 });
-
-
-// $('#attributeTb tbody').on('click', 'tr', function () {
-//   // interactionSelect.getFeatures().clear();
-//   $(this).toggleClass('selected');
-//   // if (table.rows('.selected')) {
-//   if ($(this).hasClass('selected')) {
-//     // $(this).removeClass('selected');
-//     console.log('selected it.')
-//     console.log(table.row(this).data().id);
-//     // console.log(table.row(this).data());
-//     var long = table.row(this).data().properties["longitude"];
-//     var lat = table.row(this).data().properties["latitude"];
-//     console.log(lat, long)
-    
-//     var selectedFeatures = new ol.Feature({
-//       geometry: new ol.geom.Point(
-//         ol.proj.fromLonLat([long, lat])
-//         // The following line worked as well, whcih can be used when the coordinate system of data source
-//         // is different from the openLayers map
-//         // ol.proj.transform([long, lat], 'EPSG:4326', 'EPSG:3857')
-//       )
-//     });
-//     var selectedSource = new ol.source.Vector({
-//       features: [selectedFeatures] // Features should be stored in an array
-//     });
-//     var seletedLayer = new ol.layer.Vector({
-//       source: selectedSource,
-//       style: pStyle
-//     });
-//     // map.addLayer(seletedLayer);
-//     // console.log(map.getLayers());
-//     // highlightFeature(selectedFeatures)
-//     interactionSelect.getFeatures().push(selectedFeatures);
-//     // interactionSelect.dispatchEvent({
-//     //   type: 'select',
-//     //   selected: [selectedFeatures],
-//     //   deselected: []
-//     // });
-//   } else {
-//     console.log('selected, so we unselected it');
-//     interactionSelect.getFeatures().clear();
-//     // table.$('tr.selected').removeClass('selected');
-//     // $(this).addClass('selected');
-//   }
-// });
