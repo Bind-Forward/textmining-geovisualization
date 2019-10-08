@@ -375,13 +375,6 @@ var table = $('#attributeTb').DataTable({
           columns: ':visible'
       }
     },
-    // {
-    //   extend: 'pdfHtml5',
-    //   exportOptions: {
-    //       columns: [ 0, 1, 2, 5 ]
-    //   }
-    // },
-    // 'colvis'
   ],
   "scrollX": true,
   "ajax":{
