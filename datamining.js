@@ -364,6 +364,7 @@ map.on('pointermove', function(e) {
 
 // Create attribute table using Jquery library DataTable
 // Here I use the newer 'DataTable' function rather than the older one 'dataTable'
+
 var table = $('#attributeTb').DataTable({
   responsive: 'true',
   // dom: 'iBfrtlp',
@@ -410,6 +411,58 @@ var table = $('#attributeTb').DataTable({
       "class": "center"},
     ],
 });
+
+// Apply a search to the second table for the demo
+var table2 = $('#myTable2').DataTable({
+  responsive: 'true',
+  // dom: 'iBfrtlp',
+  "dom": '<"top"iB>frt<"bottom"lp>',
+  buttons: [
+    { 
+      extend: 'excelHtml5',
+      exportOptions: {
+          columns: ':visible'
+      }
+    },
+  ],
+  "scrollX": true,
+  "ajax":{
+    // Delete the limitation: maxFeatures=50
+    // Solved from Stackoverflow questions no.48147970
+    // "url": "http://152.7.99.155:8080/geoserver/potatoBlight/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=potatoBlight:a_45disease_extend0&outputFormat=application%2Fjson",
+    "url": 'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS'+ 
+    '&version=1.0.0&request=GetFeature'+
+    // '&typeName=potatoBlight:'+ 'a_45disease_extend0' +
+    '&typeName=potatoBlight:'+ 'a_44disease_old0' +
+    // '&CQL_FILTER=status=%27accept%27' +
+    // '&CQL_FILTER=id=1' +
+    '&outputFormat=application/json',
+    "dataSrc": "features"
+  },
+  "columns": [
+    { "title": "ID",
+      data: "properties.id",
+      "class": "center"},
+    { "title": "Place_Name",
+      data: "properties.matchednam",
+      "class": "center"},
+    { "title": "Status",
+      data: "properties.status",
+      "class": "center"},
+    { "title": "Comment",
+      data: "properties.comment",
+      "class": "center"},
+    { "title": "Paragraph",
+      data: "properties",
+      render: function(data, type, row){
+        return data.paragragh1 + data.paragragh2 + data.paragragh3 + data.paragragh4},
+      "class": "center"},
+    ],
+});
+
+$('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
+  $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
+  } );
 
 // CellEdit plug-in
 // table.MakeCellsEditable({

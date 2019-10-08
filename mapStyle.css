@@ -196,6 +196,13 @@ span.highlight {
 	height: auto;
 }
 
+.tab-content {
+	padding:10px;
+	border-left:1px solid #DDD;
+	border-bottom:1px solid #DDD;
+	border-right:1px solid #DDD;
+  }
+
 /* Added for sidebar test */
 /* .layer-switcher {
     position: initial;
