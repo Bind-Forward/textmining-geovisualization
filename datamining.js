@@ -9,13 +9,14 @@ function defineVectorLayer(layername, featurestatus){
         return  'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS' +
                 '&version=1.0.0&request=GetFeature'+
                 '&typeName=potatoBlight:'+ layername +
+                // '&styles=' +
                 '&CQL_FILTER=status=%27'+ featurestatus +'%27' +
                '&outputFormat=application/json&srsname=EPSG:3857'
               // + '&bbox=' + extent.join(',') + ',EPSG:3857'; // CQL filter and bbox are mutually exclusive. comment this to enable cql filter
       },
       strategy: ol.loadingstrategy.bbox,
     }),
-    style: styleFunction,
+    style: styleFunction, // Setting style in GeoServer SLD files 
   });
   return vectorLayer;
 };
@@ -128,7 +129,7 @@ function getData(multiFeatures, featureIndex, fLength){
 function toggleNav() {
   navSize = document.getElementById("tableSidenav").style.height;
   // If the height of table navigation bar equals to 250 px (the table is opened), close the table; otherwise, open it.
-  if (navSize == "250px"){
+  if (navSize == "50%"){
     console.log("close");
     return closeNav();
   }
@@ -136,8 +137,8 @@ function toggleNav() {
 }
 
 function openNav() {
-  document.getElementById("tableSidenav").style.height = "250px";
-  document.getElementById("map").style.marginBottom = "250px";
+  document.getElementById("tableSidenav").style.height = "50%";
+  document.getElementById("map").style.marginBottom = "50%";
 }
 
 function closeNav() {
@@ -186,9 +187,9 @@ closer.onclick = function(){
 };
 
 // Need to figure out the syntax of view.fit
-zoom2feature.onclick = function(){
-  map.getView().fit(layer45.getSource().getExtent(), [50, 50]);
-};
+// zoom2feature.onclick = function(){
+//   map.getView().fit(layer45.getSource().getExtent(), [50, 50]);
+// };
 
 // submit status and comments to the postGIS database
 submitButton.onclick = function (){
@@ -260,7 +261,7 @@ var transactWFS = function (mode, f) {
       contentType: 'text/xml',
       data: payload
   }).done(function() {
-    source45.clear();
+    // source45.clear();
   });
 };
 
@@ -365,7 +366,23 @@ map.on('pointermove', function(e) {
 // Here I use the newer 'DataTable' function rather than the older one 'dataTable'
 var table = $('#attributeTb').DataTable({
   responsive: 'true',
-  "dom": '<"top"i>frt<"bottom"lp>',
+  // dom: 'iBfrtlp',
+  "dom": '<"top"iB>frt<"bottom"lp>',
+  buttons: [
+    { 
+      extend: 'excelHtml5',
+      exportOptions: {
+          columns: ':visible'
+      }
+    },
+    // {
+    //   extend: 'pdfHtml5',
+    //   exportOptions: {
+    //       columns: [ 0, 1, 2, 5 ]
+    //   }
+    // },
+    // 'colvis'
+  ],
   "scrollX": true,
   "ajax":{
     // Delete the limitation: maxFeatures=50
@@ -373,8 +390,9 @@ var table = $('#attributeTb').DataTable({
     // "url": "http://152.7.99.155:8080/geoserver/potatoBlight/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=potatoBlight:a_45disease_extend0&outputFormat=application%2Fjson",
     "url": 'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS'+ 
     '&version=1.0.0&request=GetFeature'+
-    '&typeName=potatoBlight:'+ 'a_44disease_old0' +
-    '&CQL_FILTER=status=%27accept%27' +
+    '&typeName=potatoBlight:'+ 'a_45disease_extend0' +
+    // '&typeName=potatoBlight:'+ 'a_44disease_old0' +
+    // '&CQL_FILTER=status=%27accept%27' +
     // '&CQL_FILTER=id=1' +
     '&outputFormat=application/json',
     "dataSrc": "features"
@@ -397,8 +415,48 @@ var table = $('#attributeTb').DataTable({
       render: function(data, type, row){
         return data.paragragh1 + data.paragragh2 + data.paragragh3 + data.paragragh4},
       "class": "center"},
-    ]
+    ],
 });
+
+// CellEdit plug-in
+// table.MakeCellsEditable({
+//   "onUpdate": myCallbackFunction,
+  // "inputCss":'my-input-class',
+  // "columns": [2,3],
+  // // "allowNulls": {
+  // //     "columns": [3],
+  // //     "errorClass": 'error'
+  // // },
+  // "confirmationButton": { // could also be true
+  //     "confirmCss": 'my-confirm-class',
+  //     "cancelCss": 'my-cancel-class'
+  // },
+  // "inputTypes": [
+  //     {
+  //         "column": 2,
+  //         "type": "list",
+  //         "options": [
+  //           {"value": "accept", "display": "accept"},
+  //           {"value": "move", "display": "move"},
+  //           {"value": "uncertain", "display": "uncertain"},
+  //           {"value": "default", "display": "default"},
+  //           {"value": "archive", "display": "archive"},
+  //           {"value": "remove", "display": "remove"}
+  //         ]
+  //     },
+  //     {
+  //         "column": 3, 
+  //         "type": "text",
+  //         "options": null
+  //     },      
+  // ]
+// });
+
+// function myCallbackFunction (updatedCell, updatedRow, oldValue) {
+//   console.log("The new value for the cell is: " + updatedCell.data());
+//   console.log("The old value for that cell was: " + oldValue);
+//   console.log("The values for each cell in that row are: " + updatedRow.data());
+// }
 
 // Select (highlight) the point feature from the attribute table
 var pStyle = new ol.style.Style({
