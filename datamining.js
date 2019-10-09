@@ -364,12 +364,8 @@ map.on('pointermove', function(e) {
 });
 
 // Create attribute table using Jquery library DataTable
-// Here I use the newer 'DataTable' function rather than the older one 'dataTable'
-
-document.getElementById("tab-1").innerHTML = "1845 disease";
-document.getElementById("tab-2").innerHTML = "1844 disease";
-
 function createTabTable(attributeTableID, layerID){
+  // Use the new 'DataTable' function rather than the older one 'dataTable'
   var table = $(attributeTableID).DataTable({
     responsive: 'true',
     // dom: 'iBfrtlp',
@@ -416,95 +412,18 @@ function createTabTable(attributeTableID, layerID){
   return table;
 };
 
+document.getElementById("tab-1").innerHTML = "1845 disease";
+document.getElementById("tab-2").innerHTML = "1844 disease";
+document.getElementById("tab-3").innerHTML = "1843 disease";
 var table45 = createTabTable('#attributeTb', 'a_45disease_extend0');
 var table44 = createTabTable('#attributeTb2', 'a_44disease_old0');
+var table43 = createTabTable('#attributeTb3', 'a_43disease_old0');
 
-
-// var table = $('#attributeTb').DataTable({
-//   responsive: 'true',
-//   // dom: 'iBfrtlp',
-//   "dom": '<"top"fB>rt<"bottom"lip>',
-//   // "dom": '<"top"iBf>rt<"bottom"lp>',
-//   buttons: [
-//     { 
-//       extend: 'excelHtml5',
-//       exportOptions: {
-//           columns: ':visible'
-//       }
-//     },
-//   ],
-//   "scrollX": true,
-//   "ajax":{
-//     // Delete the limitation: maxFeatures=50
-//     // Solved from Stackoverflow questions no.48147970
-//     "url": 'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS'+ 
-//     '&version=1.0.0&request=GetFeature'+
-//     '&typeName=potatoBlight:'+ 'a_45disease_extend0' +
-//     '&outputFormat=application/json',
-//     "dataSrc": "features"
-//   },
-//   "columns": [
-//     { "title": "ID",
-//       data: "properties.id",
-//       "class": "center"},
-//     { "title": "Place_Name",
-//       data: "properties.matchednam",
-//       "class": "center"},
-//     { "title": "Status",
-//       data: "properties.status",
-//       "class": "center"},
-//     { "title": "Comment",
-//       data: "properties.comment",
-//       "class": "center"},
-//     { "title": "Paragraph",
-//       data: "properties",
-//       render: function(data, type, row){
-//         return data.paragragh1 + data.paragragh2 + data.paragragh3 + data.paragragh4},
-//       "class": "center"},
-//     ],
-// });
-
-// var table2 = $('#attributeTb2').DataTable({
-//   responsive: 'true',
-//   "dom": '<"top"fB>rt<"bottom"lip>',
-//   buttons: [
-//     { 
-//       extend: 'excelHtml5',
-//       exportOptions: {
-//           columns: ':visible'
-//       }
-//     },
-//   ],
-//   "scrollX": true,
-//   "ajax":{
-//     // Delete the limitation: maxFeatures=50
-//     // Solved from Stackoverflow questions no.48147970
-//     "url": 'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS'+ 
-//     '&version=1.0.0&request=GetFeature'+
-//     '&typeName=potatoBlight:'+ 'a_44disease_old0' +
-//     '&outputFormat=application/json',
-//     "dataSrc": "features"
-//   },
-//   "columns": [
-//     { "title": "ID",
-//       data: "properties.id",
-//       "class": "center"},
-//     { "title": "Place_Name",
-//       data: "properties.matchednam",
-//       "class": "center"},
-//     { "title": "Status",
-//       data: "properties.status",
-//       "class": "center"},
-//     { "title": "Comment",
-//       data: "properties.comment",
-//       "class": "center"},
-//     { "title": "Paragraph",
-//       data: "properties",
-//       render: function(data, type, row){
-//         return data.paragragh1 + data.paragragh2 + data.paragragh3 + data.paragragh4},
-//       "class": "center"},
-//     ],
-// });
+var tableDict = {
+  "#attributeTb": table45,
+  "#attributeTb2": table44,
+  "#attributeTb3": table43,
+}
 
 $('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
   $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
@@ -564,19 +483,28 @@ var pStyle = new ol.style.Style({
   })
 });
 
+
+
+// $('#tab-1').on('click', function(){
+//   console.log($('.tab-content table'))
+// })
+
 // Select the row in the attribute table will also highlight the point on the map.
 // It doesn't enable multiple selection.
-$('#attributeTb tbody').on('click', 'tr', function () {
+$('.tab-content tbody').on('click', 'tr', function () {
   interactionSelect.getFeatures().clear(); // Clear the selected features
+  var currentTableID = $(this).closest('table').attr('id');
+  var currentTable = tableDict["#"+currentTableID];
+  
   // $(this).toggleClass('selected');
   if ($(this).hasClass('selected')) { // If the row is selected,
     $(this).removeClass('selected'); // deselect it
   } else {
-    table45.$('tr.selected').removeClass('selected'); // Remove all the selected rows in the table
+    $('tr.selected').removeClass('selected'); // Remove all the selected rows in the table
     $(this).addClass('selected'); // Select the row
-    var long = table45.row(this).data().properties["longitude"];
-    var lat = table45.row(this).data().properties["latitude"];
-    console.log(table45.row(this).data().id, lat, long)
+    var long = currentTable.row(this).data().properties["longitude"];
+    var lat = currentTable.row(this).data().properties["latitude"];
+    console.log(currentTable.row(this).data().id, lat, long)
     
     // Create a new point featue of the selected row
     var selectedFeatures = new ol.Feature({
@@ -584,14 +512,7 @@ $('#attributeTb tbody').on('click', 'tr', function () {
         ol.proj.fromLonLat([long, lat])
       )
     });
-    // var selectedSource = new ol.source.Vector({
-    //   features: [selectedFeatures] // Features should be stored in an array
-    // });
-    // Stored the point to a new vector layer
-    // var seletedLayer = new ol.layer.Vector({
-    //   source: selectedSource,
-    //   style: pStyle
-    // });
+
     highlightFeature(selectedFeatures)
   }
 });
