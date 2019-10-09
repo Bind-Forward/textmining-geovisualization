@@ -32,7 +32,6 @@ function createLayersGroups(layerNames, layerStatus){
     }
   };
   for (var key in layersDict){
-    console.log(layersDict[key]);
     var g = new ol.layer.Group({
       title: key,
       fold: 'open',
@@ -279,7 +278,6 @@ var interactionSelect = new ol.interaction.Select({
 var layerNames = ['a_43disease_old0', 'a_44disease_old0', 'a_45disease_extend0']; //'a_43disease_extend0', 'a_44disease_extend0'
 var layerStatus = ["remove", "archive", "default", "uncertain", "move", "accept"];
 gList = createLayersGroups(layerNames, layerStatus);
-console.log(gList);
 
 var mapLayers = [
   new ol.layer.Group({
@@ -371,101 +369,142 @@ map.on('pointermove', function(e) {
 document.getElementById("tab-1").innerHTML = "1845 disease";
 document.getElementById("tab-2").innerHTML = "1844 disease";
 
-var table = $('#attributeTb').DataTable({
-  responsive: 'true',
-  // dom: 'iBfrtlp',
-  "dom": '<"top"fB>rt<"bottom"lip>',
-  // "dom": '<"top"iBf>rt<"bottom"lp>',
-  buttons: [
-    { 
-      extend: 'excelHtml5',
-      exportOptions: {
-          columns: ':visible'
-      }
-    },
-  ],
-  "scrollX": true,
-  "ajax":{
-    // Delete the limitation: maxFeatures=50
-    // Solved from Stackoverflow questions no.48147970
-    // "url": "http://152.7.99.155:8080/geoserver/potatoBlight/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=potatoBlight:a_45disease_extend0&outputFormat=application%2Fjson",
-    "url": 'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS'+ 
-    '&version=1.0.0&request=GetFeature'+
-    '&typeName=potatoBlight:'+ 'a_45disease_extend0' +
-    // '&typeName=potatoBlight:'+ 'a_44disease_old0' +
-    // '&CQL_FILTER=status=%27accept%27' +
-    // '&CQL_FILTER=id=1' +
-    '&outputFormat=application/json',
-    "dataSrc": "features"
-  },
-  "columns": [
-    { "title": "ID",
-      data: "properties.id",
-      "class": "center"},
-    { "title": "Place_Name",
-      data: "properties.matchednam",
-      "class": "center"},
-    { "title": "Status",
-      data: "properties.status",
-      "class": "center"},
-    { "title": "Comment",
-      data: "properties.comment",
-      "class": "center"},
-    { "title": "Paragraph",
-      data: "properties",
-      render: function(data, type, row){
-        return data.paragragh1 + data.paragragh2 + data.paragragh3 + data.paragragh4},
-      "class": "center"},
+function createTabTable(attributeTableID, layerID){
+  var table = $(attributeTableID).DataTable({
+    responsive: 'true',
+    // dom: 'iBfrtlp',
+    "dom": '<"top"fB>rt<"bottom"lip>',
+    buttons: [
+      { 
+        extend: 'excelHtml5',
+        exportOptions: {
+            columns: ':visible'
+        }
+      },
     ],
-});
+    "scrollX": true,
+    "ajax":{
+      // Delete the limitation: maxFeatures=50
+      // Solved from Stackoverflow questions no.48147970
+      "url": 'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS'+ 
+      '&version=1.0.0&request=GetFeature'+
+      '&typeName=potatoBlight:'+ layerID +
+      '&outputFormat=application/json',
+      "dataSrc": "features"
+    },
+    "columns": [
+      { "title": "ID",
+        data: "properties.id",
+        "class": "center"},
+      { "title": "Place_Name",
+        data: "properties.matchednam",
+        "class": "center"},
+      { "title": "Status",
+        data: "properties.status",
+        "class": "center"},
+      { "title": "Comment",
+        data: "properties.comment",
+        "class": "center"},
+      { "title": "Paragraph",
+        data: "properties",
+        render: function(data, type, row){
+          return data.paragragh1 + data.paragragh2 + data.paragragh3 + data.paragragh4},
+        "class": "center"},
+      ],
+  });
+  
+  return table;
+};
 
-// Apply a search to the second table for the demo
-var table2 = $('#attributeTb2').DataTable({
-  responsive: 'true',
-  // dom: 'iBfrtlp',
-  "dom": '<"top"fB>rt<"bottom"lip>',
-  buttons: [
-    { 
-      extend: 'excelHtml5',
-      exportOptions: {
-          columns: ':visible'
-      }
-    },
-  ],
-  "scrollX": true,
-  "ajax":{
-    // Delete the limitation: maxFeatures=50
-    // Solved from Stackoverflow questions no.48147970
-    // "url": "http://152.7.99.155:8080/geoserver/potatoBlight/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=potatoBlight:a_45disease_extend0&outputFormat=application%2Fjson",
-    "url": 'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS'+ 
-    '&version=1.0.0&request=GetFeature'+
-    // '&typeName=potatoBlight:'+ 'a_45disease_extend0' +
-    '&typeName=potatoBlight:'+ 'a_44disease_old0' +
-    // '&CQL_FILTER=status=%27accept%27' +
-    // '&CQL_FILTER=id=1' +
-    '&outputFormat=application/json',
-    "dataSrc": "features"
-  },
-  "columns": [
-    { "title": "ID",
-      data: "properties.id",
-      "class": "center"},
-    { "title": "Place_Name",
-      data: "properties.matchednam",
-      "class": "center"},
-    { "title": "Status",
-      data: "properties.status",
-      "class": "center"},
-    { "title": "Comment",
-      data: "properties.comment",
-      "class": "center"},
-    { "title": "Paragraph",
-      data: "properties",
-      render: function(data, type, row){
-        return data.paragragh1 + data.paragragh2 + data.paragragh3 + data.paragragh4},
-      "class": "center"},
-    ],
-});
+var table45 = createTabTable('#attributeTb', 'a_45disease_extend0');
+var table44 = createTabTable('#attributeTb2', 'a_44disease_old0');
+
+
+// var table = $('#attributeTb').DataTable({
+//   responsive: 'true',
+//   // dom: 'iBfrtlp',
+//   "dom": '<"top"fB>rt<"bottom"lip>',
+//   // "dom": '<"top"iBf>rt<"bottom"lp>',
+//   buttons: [
+//     { 
+//       extend: 'excelHtml5',
+//       exportOptions: {
+//           columns: ':visible'
+//       }
+//     },
+//   ],
+//   "scrollX": true,
+//   "ajax":{
+//     // Delete the limitation: maxFeatures=50
+//     // Solved from Stackoverflow questions no.48147970
+//     "url": 'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS'+ 
+//     '&version=1.0.0&request=GetFeature'+
+//     '&typeName=potatoBlight:'+ 'a_45disease_extend0' +
+//     '&outputFormat=application/json',
+//     "dataSrc": "features"
+//   },
+//   "columns": [
+//     { "title": "ID",
+//       data: "properties.id",
+//       "class": "center"},
+//     { "title": "Place_Name",
+//       data: "properties.matchednam",
+//       "class": "center"},
+//     { "title": "Status",
+//       data: "properties.status",
+//       "class": "center"},
+//     { "title": "Comment",
+//       data: "properties.comment",
+//       "class": "center"},
+//     { "title": "Paragraph",
+//       data: "properties",
+//       render: function(data, type, row){
+//         return data.paragragh1 + data.paragragh2 + data.paragragh3 + data.paragragh4},
+//       "class": "center"},
+//     ],
+// });
+
+// var table2 = $('#attributeTb2').DataTable({
+//   responsive: 'true',
+//   "dom": '<"top"fB>rt<"bottom"lip>',
+//   buttons: [
+//     { 
+//       extend: 'excelHtml5',
+//       exportOptions: {
+//           columns: ':visible'
+//       }
+//     },
+//   ],
+//   "scrollX": true,
+//   "ajax":{
+//     // Delete the limitation: maxFeatures=50
+//     // Solved from Stackoverflow questions no.48147970
+//     "url": 'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS'+ 
+//     '&version=1.0.0&request=GetFeature'+
+//     '&typeName=potatoBlight:'+ 'a_44disease_old0' +
+//     '&outputFormat=application/json',
+//     "dataSrc": "features"
+//   },
+//   "columns": [
+//     { "title": "ID",
+//       data: "properties.id",
+//       "class": "center"},
+//     { "title": "Place_Name",
+//       data: "properties.matchednam",
+//       "class": "center"},
+//     { "title": "Status",
+//       data: "properties.status",
+//       "class": "center"},
+//     { "title": "Comment",
+//       data: "properties.comment",
+//       "class": "center"},
+//     { "title": "Paragraph",
+//       data: "properties",
+//       render: function(data, type, row){
+//         return data.paragragh1 + data.paragragh2 + data.paragragh3 + data.paragragh4},
+//       "class": "center"},
+//     ],
+// });
 
 $('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
   $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
@@ -533,27 +572,26 @@ $('#attributeTb tbody').on('click', 'tr', function () {
   if ($(this).hasClass('selected')) { // If the row is selected,
     $(this).removeClass('selected'); // deselect it
   } else {
-    table.$('tr.selected').removeClass('selected'); // Remove all the selected rows in the table
+    table45.$('tr.selected').removeClass('selected'); // Remove all the selected rows in the table
     $(this).addClass('selected'); // Select the row
-    var long = table.row(this).data().properties["longitude"];
-    var lat = table.row(this).data().properties["latitude"];
-    console.log(table.row(this).data().id, lat, long)
+    var long = table45.row(this).data().properties["longitude"];
+    var lat = table45.row(this).data().properties["latitude"];
+    console.log(table45.row(this).data().id, lat, long)
     
+    // Create a new point featue of the selected row
     var selectedFeatures = new ol.Feature({
       geometry: new ol.geom.Point(
         ol.proj.fromLonLat([long, lat])
-        // The following line worked as well, whcih can be used when the coordinate system of data source
-        // is different from the openLayers map
-        // ol.proj.transform([long, lat], 'EPSG:4326', 'EPSG:3857')
       )
     });
-    var selectedSource = new ol.source.Vector({
-      features: [selectedFeatures] // Features should be stored in an array
-    });
-    var seletedLayer = new ol.layer.Vector({
-      source: selectedSource,
-      style: pStyle
-    });
+    // var selectedSource = new ol.source.Vector({
+    //   features: [selectedFeatures] // Features should be stored in an array
+    // });
+    // Stored the point to a new vector layer
+    // var seletedLayer = new ol.layer.Vector({
+    //   source: selectedSource,
+    //   style: pStyle
+    // });
     highlightFeature(selectedFeatures)
   }
 });
