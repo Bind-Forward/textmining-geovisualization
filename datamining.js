@@ -10,7 +10,8 @@ function defineVectorLayer(layername, featurestatus){
                 '&version=1.0.0&request=GetFeature'+
                 '&typeName=potatoBlight:'+ layername +
                 // '&styles=' +
-                '&CQL_FILTER=status=%27'+ featurestatus +'%27' +
+                // '&CQL_FILTER=status=%27'+ featurestatus +'%27' +
+                '&CQL_FILTER=strToLowerCase(status)=%27'+ featurestatus +'%27' +
                '&outputFormat=application/json&srsname=EPSG:3857'
               // + '&bbox=' + extent.join(',') + ',EPSG:3857'; // CQL filter and bbox are mutually exclusive. comment this to enable cql filter
       },
@@ -31,6 +32,7 @@ function createLayersGroups(layerNames, layerStatus){
     }
   };
   for (var key in layersDict){
+    console.log(layersDict[key]);
     var g = new ol.layer.Group({
       title: key,
       fold: 'open',
@@ -277,6 +279,7 @@ var interactionSelect = new ol.interaction.Select({
 var layerNames = ['a_43disease_old0', 'a_44disease_old0', 'a_45disease_extend0']; //'a_43disease_extend0', 'a_44disease_extend0'
 var layerStatus = ["remove", "archive", "default", "uncertain", "move", "accept"];
 gList = createLayersGroups(layerNames, layerStatus);
+console.log(gList);
 
 var mapLayers = [
   new ol.layer.Group({
@@ -365,10 +368,14 @@ map.on('pointermove', function(e) {
 // Create attribute table using Jquery library DataTable
 // Here I use the newer 'DataTable' function rather than the older one 'dataTable'
 
+document.getElementById("tab-1").innerHTML = "1845 disease";
+document.getElementById("tab-2").innerHTML = "1844 disease";
+
 var table = $('#attributeTb').DataTable({
   responsive: 'true',
   // dom: 'iBfrtlp',
-  "dom": '<"top"iB>frt<"bottom"lp>',
+  "dom": '<"top"fB>rt<"bottom"lip>',
+  // "dom": '<"top"iBf>rt<"bottom"lp>',
   buttons: [
     { 
       extend: 'excelHtml5',
@@ -413,10 +420,10 @@ var table = $('#attributeTb').DataTable({
 });
 
 // Apply a search to the second table for the demo
-var table2 = $('#myTable2').DataTable({
+var table2 = $('#attributeTb2').DataTable({
   responsive: 'true',
   // dom: 'iBfrtlp',
-  "dom": '<"top"iB>frt<"bottom"lp>',
+  "dom": '<"top"fB>rt<"bottom"lip>',
   buttons: [
     { 
       extend: 'excelHtml5',
