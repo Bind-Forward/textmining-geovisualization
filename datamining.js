@@ -1,5 +1,5 @@
 // Load vector layer from the WFS service
-function defineVectorLayer(layername, featurestatus){
+function defineVectorLayer(layerID, featurestatus){
   var vectorLayer = new ol.layer.Vector({
     title: featurestatus,
     source: new ol.source.Vector({
@@ -8,7 +8,7 @@ function defineVectorLayer(layername, featurestatus){
       url: function(extent) {
         return  'http://152.7.99.155:8080/geoserver/potatoBlight/wfs?service=WFS' +
                 '&version=1.0.0&request=GetFeature'+
-                '&typeName=potatoBlight:'+ layername +
+                '&typeName=potatoBlight:'+ layerID +
                 // '&styles=' +
                 // '&CQL_FILTER=status=%27'+ featurestatus +'%27' +
                 '&CQL_FILTER=strToLowerCase(status)=%27'+ featurestatus +'%27' +
@@ -22,10 +22,11 @@ function defineVectorLayer(layername, featurestatus){
   return vectorLayer;
 };
 
-function createLayersGroups(layerNames, layerStatus){
+function createLayersGroups(lyrNameDict, layerStatus){
   var layersDict = {};
   var layersGroup = [];
-  for (n of layerNames){
+  for (n in lyrNameDict){
+    console.log(lyrNameDict[n]);
     layersDict[n] = [];
     for (s of layerStatus){
       layersDict[n].push(defineVectorLayer(n, s));
@@ -33,7 +34,7 @@ function createLayersGroups(layerNames, layerStatus){
   };
   for (var key in layersDict){
     var g = new ol.layer.Group({
-      title: key,
+      title: lyrNameDict[key],
       fold: 'open',
       layers: layersDict[key]
     });
@@ -277,9 +278,9 @@ var interactionSelectPointerMove = new ol.interaction.Select({
 var interactionSelect = new ol.interaction.Select({
 });
 
-var layerNames = ['a_43disease_old0', 'a_44disease_old0', 'a_45disease_extend0']; //'a_43disease_extend0', 'a_44disease_extend0'
+let lyrNameDict = {'a_43disease_old0': "1843 disease", 'a_44disease_old0': "1844 disease", 'a_45disease_extend0': "1845 disease"}; //'a_43disease_extend0', 'a_44disease_extend0'
 var layerStatus = ["remove", "archive", "default", "uncertain", "move", "accept"];
-gList = createLayersGroups(layerNames, layerStatus);
+gList = createLayersGroups(lyrNameDict, layerStatus);
 
 var mapLayers = [
   new ol.layer.Group({
