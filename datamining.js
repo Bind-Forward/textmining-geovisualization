@@ -53,10 +53,10 @@ function buttonSwitch(i, length){
   }
 };
 
-function setContent(pointID,locationname, paragraph, status, comment){
+function setContent(layerID, pointID,locationname, paragraph, status, comment){
   start = paragraph.indexOf(locationname);
   end = start+locationname.length;
-  var popupContent = `<b>Ponit ID: `+ pointID + `</b>: ` + locationname + 
+  var popupContent = `<b>` + layerID + `</b> <b>Ponit ID- `+ pointID + `</b>: ` + locationname + 
   `<br>` + paragraph.substring(0, start) + "<b>" + locationname + "</b>" + paragraph.substring(end, ) + 
   `<br>
   <select id='status'>
@@ -106,6 +106,7 @@ function styleFunction(feature) {
 
 function getData(multiFeatures, featureIndex, fLength){
   var f = multiFeatures[featureIndex];
+  var layerID = f.getId().toString().split('.')[0];
   var pointID = f.get('id');
   var locationname = f.get('matchednam');
   var plist = [f.get('paragragh1'), f.get('paragragh2'), f.get('paragragh3'), f.get('paragragh4'), f.get('paragragh5'), f.get('paragragh6'), f.get('paragragh7'), f.get('paragragh8'), f.get('paragragh9')];
@@ -121,8 +122,9 @@ function getData(multiFeatures, featureIndex, fLength){
   currentFeature = f;
   currentPointID = pointID;
   console.log(f.getId());
+  console.log(layerID);
 
-  content.innerHTML = setContent(pointID,locationname, paragraph, status, comment);
+  content.innerHTML = setContent(layerID, pointID,locationname, paragraph, status, comment);
   overlay.setPosition(coordinate);
   pointNumber.innerHTML = "( " + (featureIndex + 1) + " of " + fLength + " )";
 };
@@ -484,15 +486,11 @@ var pStyle = new ol.style.Style({
 });
 
 
-
-// $('#tab-1').on('click', function(){
-//   console.log($('.tab-content table'))
-// })
-
 // Select the row in the attribute table will also highlight the point on the map.
 // It doesn't enable multiple selection.
 $('.tab-content tbody').on('click', 'tr', function () {
   interactionSelect.getFeatures().clear(); // Clear the selected features
+  
   var currentTableID = $(this).closest('table').attr('id');
   var currentTable = tableDict["#"+currentTableID];
   
